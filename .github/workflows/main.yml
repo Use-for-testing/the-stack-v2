@@ -1,0 +1,90 @@
+name: Run Stack v2 Pipeline and Store Dataset with Git LFS
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: # Allows manual triggering
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the repository
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          lfs: true # Enable Git LFS during checkout
+
+      # Set up Python
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9' # Adjust as needed
+
+      # Install Git LFS
+      - name: Install Git LFS
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git-lfs
+          git lfs install
+
+      # Install dependencies
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas
+
+      # Create target_languages.csv (example, adjust as needed)
+      - name: Create target_languages.csv
+        run: |
+          echo "language,extension" > target_languages.csv
+          echo "Swift,swift" >> target_languages.csv
+          echo "Python,py" >> target_languages.csv
+          echo "Lua,lua" >> target_languages.csv
+          echo "C,c" >> target_languages.csv
+          echo "C++,cpp" >> target_languages.csv
+          echo "Objective-C,m" >> target_languages.csv
+          echo "C#,cs" >> target_languages.csv
+          echo "Ruby,rb" >> target_languages.csv
+          echo "JavaScript,js" >> target_languages.csv
+          echo "TypeScript,ts" >> target_languages.csv
+
+      # Run the pipeline (adjust arguments as needed)
+      - name: Run Pipeline
+        run: |
+          python get.py \
+            --output_dir ./output \
+            --gharchive_path ./data/gharchive \
+            --swh_origin_path ./data/swh/origin_visit_status \
+            --swh_snapshot_branch_path ./data/swh/snapshot_branch \
+            --swh_revision_path ./data/swh/revision \
+            --swh_directory_entry_path ./data/swh/directory_entry \
+            --swh_content_path ./data/swh/content \
+            --skip_setup_enry \
+            --skip_requirements
+
+      # Track dataset.zip with Git LFS
+      - name: Configure Git LFS Tracking
+        run: |
+          git lfs track "output/dataset.zip"
+          git add .gitattributes
+
+      # Commit and push changes
+      - name: Commit and Push Dataset
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git add output/dataset.zip .gitattributes
+          git commit -m "Update dataset.zip with latest pipeline run" || echo "Nothing to commit"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Upload dataset.zip as artifact (optional, for debugging)
+      - name: Upload Dataset Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dataset
+          path: output/dataset.zip
