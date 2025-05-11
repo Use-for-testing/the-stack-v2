@@ -1,5 +1,4 @@
 import argparse
-import boto3
 
 import pyspark.sql.functions as F
 from pyspark.sql import SparkSession
@@ -76,41 +75,38 @@ if __name__ == "__main__":
     args = argparse.ArgumentParser()
     args.add_argument(
         "--repo_data_path",
-        default="s3a://bigcode-datasets-us-east-1/the_stack/swh_2023_09_06/repo_data/",
+        default="/data/the_stack_v2_pr_and_other_datasets/local_data/the_stack/swh_2023_09_06/repo_data/",
         type=str,
-        help="S3 path to the repository metadata",
+        help="Local path to the repository metadata",
     )
     args.add_argument(
         "--swh_directory_entry_path",
-        default="s3a://softwareheritage/graph/2023-09-06/orc/directory_entry/",
+        default="/data/the_stack_v2_pr_and_other_datasets/local_data/softwareheritage/graph/2023-09-06/orc/directory_entry/",
         type=str,
-        help="S3 path to SWH directory_entry orc files",
+        help="Local path to SWH directory_entry orc files",
     )
     args.add_argument(
         "--swh_content_path",
-        default="s3a://softwareheritage/graph/2023-09-06/orc/content/",
+        default="/data/the_stack_v2_pr_and_other_datasets/local_data/softwareheritage/graph/2023-09-06/orc/content/",
         type=str,
-        help="S3 path to SWH content orc files",
+        help="Local path to SWH content orc files",
     )
     args.add_argument(
         "--cache_path",
-        default="s3a://bigcode-datasets-us-east-1/the_stack/swh_2023_09_06/file_paths_cache",
+        default="/data/the_stack_v2_pr_and_other_datasets/local_data/the_stack/swh_2023_09_06/file_paths_cache",
         type=str,
-        help="S3 path to the directory paths cache",
+        help="Local path to the directory paths cache",
     )
     args.add_argument(
         "--output_path",
-        default="s3a://bigcode-datasets-us-east-1/the_stack/swh_2023_09_06/file_paths",
+        default="/data/the_stack_v2_pr_and_other_datasets/local_data/the_stack/swh_2023_09_06/file_paths",
         type=str,
-        help="S3 path to save the final file paths",
+        help="Local path to save the final file paths",
     )
     args = args.parse_args()
 
-    aws_creds = boto3.Session().get_credentials()
     spark = (
         SparkSession.builder.config("spark.sql.shuffle.partitions", 65536)
-        .config("spark.hadoop.fs.s3a.access.key", aws_creds.access_key)
-        .config("spark.hadoop.fs.s3a.secret.key", aws_creds.secret_key)
         .appName("find_file_paths")
         .getOrCreate()
     )

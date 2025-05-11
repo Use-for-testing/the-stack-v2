@@ -1,4 +1,3 @@
-import boto3
 import requests
 import argparse
 
@@ -200,35 +199,32 @@ if __name__ == "__main__":
     args = argparse.ArgumentParser()
     args.add_argument(
         "--repo_data_path",
-        default="s3a://bigcode-datasets-us-east-1/the_stack/swh_2023_09_06/repo_data/",
+        default="/data/the_stack_v2_pr_and_other_datasets/local_data/the_stack/swh_2023_09_06/repo_data/",
         type=str,
-        help="S3 path to the repository metadata",
+        help="Local path to the repository metadata",
     )
     args.add_argument(
         "--file_paths_path",
-        default="s3a://bigcode-datasets-us-east-1/swh_2023_09_06/file_paths/",
+        default="/data/the_stack_v2_pr_and_other_datasets/local_data/swh_2023_09_06/file_paths/",
         type=str,
-        help="S3 path to the file paths dataset",
+        help="Local path to the file paths dataset",
     )
     args.add_argument(
         "--file_contents_path",
-        default="s3a://bigcode-datasets-us-east-1/the_stack/swh_2023_09_06/file_contents/",
+        default="/data/the_stack_v2_pr_and_other_datasets/local_data/the_stack/swh_2023_09_06/file_contents/",
         type=str,
-        help="S3 path to the file contents dataset",
+        help="Local path to the file contents dataset",
     )
     args.add_argument(
         "--output_path",
-        default="s3a://bigcode-datasets-us-east-1/the_stack/swh_2023_09_06/detected_licenses/",
+        default="/data/the_stack_v2_pr_and_other_datasets/local_data/the_stack/swh_2023_09_06/detected_licenses/",
         type=str,
-        help="S3 path to the unique files dataset",
+        help="Local path to the unique files dataset",
     )
     args = args.parse_args()
 
-    aws_creds = boto3.Session().get_credentials()
     spark = (
         SparkSession.builder.config("spark.sql.shuffle.partitions", 65536)
-        .config("spark.hadoop.fs.s3a.access.key", aws_creds.access_key)
-        .config("spark.hadoop.fs.s3a.secret.key", aws_creds.secret_key)
         .appName("get_license_types")
         .getOrCreate()
     )

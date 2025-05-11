@@ -1,5 +1,4 @@
 import argparse
-import boto3
 
 import pyspark.sql.functions as F
 from pyspark.sql import SparkSession
@@ -268,41 +267,38 @@ if __name__ == "__main__":
     args = argparse.ArgumentParser()
     args.add_argument(
         "--gharchive_path",
-        default="s3a://bigcode-datasets-us-east-1/gharchive/",
+        default="/data/the_stack_v2_pr_and_other_datasets/local_data/gharchive/",
         type=str,
-        help="S3 path to GHArchive json files",
+        help="Local path to GHArchive json files",
     )
     args.add_argument(
         "--swh_origin_path",
-        default="s3a://softwareheritage/graph/2023-09-06/orc/origin_visit_status/",
+        default="/data/the_stack_v2_pr_and_other_datasets/local_data/softwareheritage/graph/2023-09-06/orc/origin_visit_status/",
         type=str,
-        help="S3 path to SWH origin_visit_status orc files",
+        help="Local path to SWH origin_visit_status orc files",
     )
     args.add_argument(
         "--swh_snapshot_branch_path",
-        default="s3a://softwareheritage/graph/2023-09-06/orc/snapshot_branch/",
+        default="/data/the_stack_v2_pr_and_other_datasets/local_data/softwareheritage/graph/2023-09-06/orc/snapshot_branch/",
         type=str,
-        help="S3 path to SWH snapshot_branch orc files",
+        help="Local path to SWH snapshot_branch orc files",
     )
     args.add_argument(
         "--swh_revision_path",
-        default="s3a://softwareheritage/graph/2023-09-06/orc/revision/",
+        default="/data/the_stack_v2_pr_and_other_datasets/local_data/softwareheritage/graph/2023-09-06/orc/revision/",
         type=str,
-        help="S3 path to SWH revision orc files",
+        help="Local path to SWH revision orc files",
     )
     args.add_argument(
         "--output_path",
-        default="s3a://bigcode-datasets-us-east-1/the_stack/swh_2023_09_06/repo_data/",
+        default="/data/the_stack_v2_pr_and_other_datasets/local_data/the_stack/swh_2023_09_06/repo_data/",
         type=str,
-        help="S3 path to save the merged data",
+        help="Local path to save the merged data",
     )
     args = args.parse_args()
 
-    aws_creds = boto3.Session().get_credentials()
     spark = (
         SparkSession.builder.config("spark.sql.shuffle.partitions", 32768)
-        .config("spark.hadoop.fs.s3a.access.key", aws_creds.access_key)
-        .config("spark.hadoop.fs.s3a.secret.key", aws_creds.secret_key)
         .config(
             "spark.sql.files.ignoreCorruptFiles",
             "true",  # a couple of GHA files are incomplete

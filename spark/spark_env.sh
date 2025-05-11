@@ -58,15 +58,6 @@ spark.master                    ${SPARK_URL}
 spark.submit.deployMode         client
 spark.ui.showConsoleProgress    false
 spark.ui.enabled                true
-spark.jars.packages             org.apache.hadoop:hadoop-aws:3.3.4,org.apache.spark:spark-hadoop-cloud_2.12:3.3.4
-
-spark.sql.sources.commitProtocolClass                      org.apache.spark.internal.io.cloud.PathOutputCommitProtocol
-spark.sql.parquet.output.committer.class                   org.apache.spark.internal.io.cloud.BindingParquetOutputCommitter
-spark.hadoop.mapreduce.outputcommitter.factory.scheme.s3a  org.apache.hadoop.fs.s3a.commit.S3ACommitterFactory
-spark.hadoop.fs.s3a.committer.name           magic
-spark.hadoop.fs.s3a.committer.magic.enabled  true
-spark.hadoop.fs.s3a.committer.threads        ${SLURM_CPUS_PER_TASK}
-spark.hadoop.fs.s3a.buffer.dir               ${SPARK_LOCAL_DIRS}/s3a
 
 spark.local.dir                              ${SPARK_LOCAL_DIRS}
 spark.sql.warehouse.dir                      ${SPARK_LOCAL_DIRS}/warehouse

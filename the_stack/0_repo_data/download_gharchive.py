@@ -2,33 +2,40 @@ import requests
 import xml.etree.ElementTree as ET
 from concurrent.futures import ThreadPoolExecutor
 from tqdm.auto import tqdm
-import s3fs
+import os
+from pathlib import Path
 
 BUFFER_SIZE = 10 * 1024 * 1024
 
-fs = s3fs.S3FileSystem()
-bucket = "bigcode-datasets-us-east-1"
-prefix = "gharchive"
-existing_files = fs.ls(f"{bucket}/{prefix}")
+# Local storage path instead of S3
+local_data_dir = Path("/data/the_stack_v2_pr_and_other_datasets/local_data")
+gharchive_dir = local_data_dir / "gharchive"
+
+# Create directory if it doesn't exist
+gharchive_dir.mkdir(parents=True, exist_ok=True)
+
+# List existing files
+existing_files = [str(f) for f in gharchive_dir.glob("*.json.gz")]
 
 
 def download_and_upload(url):
     filename = url.split("/")[-1]
-    s3_path = f"{bucket}/{prefix}/{filename}"
+    local_path = gharchive_dir / filename
     if not filename.endswith(".json.gz"):
         return
 
     response = requests.head(url)
     response_size = int(response.headers.get("content-length", 0))
 
-    if s3_path in existing_files:
-        s3_file_size = fs.info(s3_path).get("size", 0)
-
-        if s3_file_size == response_size:
+    # Check if file exists and has the same size
+    if local_path.exists():
+        local_file_size = local_path.stat().st_size
+        if local_file_size == response_size:
             return
 
+    # Download the file to local storage
     response = requests.get(url, stream=True)
-    with fs.open(s3_path, "wb") as fout:
+    with open(local_path, "wb") as fout:
         for chunk in response.iter_content(chunk_size=BUFFER_SIZE):
             if chunk:
                 fout.write(chunk)
@@ -65,6 +72,6 @@ if __name__ == "__main__":
     initial_marker = "2011-01-01-0.json.gz"
     print("Collecting urls...")
     file_urls = get_file_urls(base_url, initial_marker)
-    print("Uploading the files to S3...")
+    print(f"Downloading the files to {gharchive_dir}...")
     with ThreadPoolExecutor(max_workers=64) as executor:
         list(tqdm(executor.map(download_and_upload, file_urls), total=len(file_urls)))
