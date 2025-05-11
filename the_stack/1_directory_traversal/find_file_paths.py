@@ -1,4 +1,5 @@
 import argparse
+import os
 
 import pyspark.sql.functions as F
 from pyspark.sql import SparkSession
@@ -75,38 +76,43 @@ if __name__ == "__main__":
     args = argparse.ArgumentParser()
     args.add_argument(
         "--repo_data_path",
-        default="/data/the_stack_v2_pr_and_other_datasets/local_data/the_stack/swh_2023_09_06/repo_data/",
+        default="./output/repo_data/",
         type=str,
         help="Local path to the repository metadata",
     )
     args.add_argument(
         "--swh_directory_entry_path",
-        default="/data/the_stack_v2_pr_and_other_datasets/local_data/softwareheritage/graph/2023-09-06/orc/directory_entry/",
+        default="./data/swh/directory_entry/",
         type=str,
         help="Local path to SWH directory_entry orc files",
     )
     args.add_argument(
         "--swh_content_path",
-        default="/data/the_stack_v2_pr_and_other_datasets/local_data/softwareheritage/graph/2023-09-06/orc/content/",
+        default="./data/swh/content/",
         type=str,
         help="Local path to SWH content orc files",
     )
     args.add_argument(
         "--cache_path",
-        default="/data/the_stack_v2_pr_and_other_datasets/local_data/the_stack/swh_2023_09_06/file_paths_cache",
+        default="./output/file_paths_cache",
         type=str,
         help="Local path to the directory paths cache",
     )
     args.add_argument(
         "--output_path",
-        default="/data/the_stack_v2_pr_and_other_datasets/local_data/the_stack/swh_2023_09_06/file_paths",
+        default="./output/file_paths",
         type=str,
         help="Local path to save the final file paths",
     )
     args = args.parse_args()
 
+    # Get Spark master URL from environment variable or use local
+    spark_master = os.environ.get("SPARK_MASTER_URL", "local[*]")
+
     spark = (
-        SparkSession.builder.config("spark.sql.shuffle.partitions", 65536)
+        SparkSession.builder
+        .config("spark.sql.shuffle.partitions", 65536)
+        .config("spark.master", spark_master)
         .appName("find_file_paths")
         .getOrCreate()
     )

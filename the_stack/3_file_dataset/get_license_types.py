@@ -1,5 +1,6 @@
 import requests
 import argparse
+import os
 
 from pyspark.sql import SparkSession
 import pyspark.sql.functions as F
@@ -199,32 +200,37 @@ if __name__ == "__main__":
     args = argparse.ArgumentParser()
     args.add_argument(
         "--repo_data_path",
-        default="/data/the_stack_v2_pr_and_other_datasets/local_data/the_stack/swh_2023_09_06/repo_data/",
+        default="./output/repo_data/",
         type=str,
         help="Local path to the repository metadata",
     )
     args.add_argument(
         "--file_paths_path",
-        default="/data/the_stack_v2_pr_and_other_datasets/local_data/swh_2023_09_06/file_paths/",
+        default="./output/file_paths/",
         type=str,
         help="Local path to the file paths dataset",
     )
     args.add_argument(
         "--file_contents_path",
-        default="/data/the_stack_v2_pr_and_other_datasets/local_data/the_stack/swh_2023_09_06/file_contents/",
+        default="./output/file_contents/",
         type=str,
         help="Local path to the file contents dataset",
     )
     args.add_argument(
         "--output_path",
-        default="/data/the_stack_v2_pr_and_other_datasets/local_data/the_stack/swh_2023_09_06/detected_licenses/",
+        default="./output/detected_licenses/",
         type=str,
         help="Local path to the unique files dataset",
     )
     args = args.parse_args()
 
+    # Get Spark master URL from environment variable or use local
+    spark_master = os.environ.get("SPARK_MASTER_URL", "local[*]")
+
     spark = (
-        SparkSession.builder.config("spark.sql.shuffle.partitions", 65536)
+        SparkSession.builder
+        .config("spark.sql.shuffle.partitions", 65536)
+        .config("spark.master", spark_master)
         .appName("get_license_types")
         .getOrCreate()
     )

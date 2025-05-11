@@ -1,9 +1,9 @@
 from datetime import date
 from pathlib import Path
 
-root_path = Path('/data/the_stack_v2_pr_and_other_datasets')
+root_path = Path('./output')  # Changed to match get.py output path
 # Path to local data that was previously stored in S3
-local_data_path = root_path / "local_data"
+local_data_path = Path('./data')
 
 gharchives_path = root_path / "gharchives"
 sdate = date(2015, 1, 1)  # start date

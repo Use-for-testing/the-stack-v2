@@ -8,7 +8,7 @@ from pathlib import Path
 BUFFER_SIZE = 10 * 1024 * 1024
 
 # Local storage path instead of S3
-local_data_dir = Path("/data/the_stack_v2_pr_and_other_datasets/local_data")
+local_data_dir = Path("./data")
 gharchive_dir = local_data_dir / "gharchive"
 
 # Create directory if it doesn't exist

@@ -23,6 +23,13 @@ jobs:
         with:
           python-version: '3.9' # Adjust as needed
 
+      # Set up Java for Spark
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+
       # Install Git LFS
       - name: Install Git LFS
         run: |
@@ -30,11 +37,43 @@ jobs:
           sudo apt-get install -y git-lfs
           git lfs install
 
+      # Install Go for enry language detection
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: '1.20'
+
+      # Install Apache Spark
+      - name: Install Apache Spark
+        run: |
+          wget https://archive.apache.org/dist/spark/spark-3.5.0/spark-3.5.0-bin-hadoop3.tgz
+          tar -xzvf spark-3.5.0-bin-hadoop3.tgz
+          echo "SPARK_HOME=$GITHUB_WORKSPACE/spark-3.5.0-bin-hadoop3" >> $GITHUB_ENV
+          echo "$GITHUB_WORKSPACE/spark-3.5.0-bin-hadoop3/bin" >> $GITHUB_PATH
+          rm spark-3.5.0-bin-hadoop3.tgz
+      
+      # Start Spark Standalone Master
+      - name: Start Spark Standalone 
+        run: |
+          $SPARK_HOME/sbin/start-master.sh -h localhost
+          $SPARK_HOME/sbin/start-worker.sh spark://localhost:7077
+          # Verify the setup is working
+          sleep 5
+          ps -ef | grep spark
+
       # Install dependencies
       - name: Install Python Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pandas
+          # Core dependencies for get.py
+          pip install pandas requests
+          # Dependencies for Spark processing
+          pip install pyspark==3.5.0 pyarrow==14.0.1
+          # Dependencies for the Stack pipeline modules
+          pip install py4j xmltodict
+          # Install requirements from files
+          pip install -r the_stack/2_download_files/requirements.txt
+          pip install -r kaggle/requirements.txt
 
       # Create target_languages.csv (example, adjust as needed)
       - name: Create target_languages.csv
@@ -51,9 +90,36 @@ jobs:
           echo "JavaScript,js" >> target_languages.csv
           echo "TypeScript,ts" >> target_languages.csv
 
+      # Create necessary directory structure
+      - name: Create Directory Structure
+        run: |
+          mkdir -p ./data/gharchive
+          mkdir -p ./data/swh/origin_visit_status
+          mkdir -p ./data/swh/snapshot_branch
+          mkdir -p ./data/swh/revision
+          mkdir -p ./data/swh/directory_entry
+          mkdir -p ./data/swh/content
+          mkdir -p ./output/repo_data
+          mkdir -p ./output/file_paths
+          mkdir -p ./output/file_paths_cache
+          
+          # Create a sample file to test
+          echo '{"sample": "data"}' > ./data/gharchive/sample.json
+          
+          # Set environment variables for Spark
+          echo "SPARK_MASTER=spark://localhost:7077" >> $GITHUB_ENV
+          
       # Run the pipeline (adjust arguments as needed)
       - name: Run Pipeline
         run: |
+          export SPARK_MASTER_URL=spark://localhost:7077
+          export JAVA_HOME=/opt/java/openjdk
+          
+          # Check that environment is properly set up
+          echo "JAVA_HOME: $JAVA_HOME"
+          echo "SPARK_HOME: $SPARK_HOME"
+          echo "Spark Master URL: $SPARK_MASTER_URL"
+          
           python get.py \
             --output_dir ./output \
             --gharchive_path ./data/gharchive \
@@ -63,7 +129,10 @@ jobs:
             --swh_directory_entry_path ./data/swh/directory_entry \
             --swh_content_path ./data/swh/content \
             --skip_setup_enry \
-            --skip_requirements
+            --skip_requirements \
+            --skip_repo_data \
+            --skip_traverse \
+            --skip_unique_files
 
       # Track dataset.zip with Git LFS
       - name: Configure Git LFS Tracking

@@ -1,4 +1,5 @@
 import argparse
+import os
 
 from pyspark.sql import SparkSession
 import pyspark.sql.functions as F
@@ -26,20 +27,25 @@ if __name__ == "__main__":
     args = argparse.ArgumentParser()
     args.add_argument(
         "--input_path",
-        default="/data/the_stack_v2_pr_and_other_datasets/local_data/the_stack/swh_2023_09_06/file_paths/",
+        default="./output/file_paths/",
         type=str,
         help="Local path to the StackV2 file path data",
     )
     args.add_argument(
         "--output_path",
-        default="/data/the_stack_v2_pr_and_other_datasets/local_data/the_stack/swh_2023_09_06/files_to_download/",
+        default="./output/files_to_download/",
         type=str,
         help="Local path to the unique files dataset",
     )
     args = args.parse_args()
 
+    # Get Spark master URL from environment variable or use local
+    spark_master = os.environ.get("SPARK_MASTER_URL", "local[*]")
+
     spark = (
-        SparkSession.builder.config("spark.sql.shuffle.partitions", 2048)
+        SparkSession.builder
+        .config("spark.sql.shuffle.partitions", 2048)
+        .config("spark.master", spark_master)
         .appName("find_file_paths")
         .getOrCreate()
     )
