@@ -1,5 +1,5 @@
 import argparse
-import boto3
+import os
 
 from pyspark.sql import SparkSession
 import pyspark.sql.functions as F
@@ -27,23 +27,25 @@ if __name__ == "__main__":
     args = argparse.ArgumentParser()
     args.add_argument(
         "--input_path",
-        default="s3a://bigcode-datasets-us-east-1/the_stack/swh_2023_09_06/file_paths/",
+        default="./output/file_paths/",
         type=str,
-        help="S3 path to the StackV2 file path data",
+        help="Local path to the StackV2 file path data",
     )
     args.add_argument(
         "--output_path",
-        default="s3a://bigcode-datasets-us-east-1/the_stack/swh_2023_09_06/files_to_download/",
+        default="./output/files_to_download/",
         type=str,
-        help="S3 path to the unique files dataset",
+        help="Local path to the unique files dataset",
     )
     args = args.parse_args()
 
-    aws_creds = boto3.Session().get_credentials()
+    # Get Spark master URL from environment variable or use local
+    spark_master = os.environ.get("SPARK_MASTER_URL", "local[*]")
+
     spark = (
-        SparkSession.builder.config("spark.sql.shuffle.partitions", 2048)
-        .config("spark.hadoop.fs.s3a.access.key", aws_creds.access_key)
-        .config("spark.hadoop.fs.s3a.secret.key", aws_creds.secret_key)
+        SparkSession.builder
+        .config("spark.sql.shuffle.partitions", 2048)
+        .config("spark.master", spark_master)
         .appName("find_file_paths")
         .getOrCreate()
     )

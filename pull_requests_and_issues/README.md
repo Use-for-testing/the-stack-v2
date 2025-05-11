@@ -8,20 +8,19 @@ Most of the processing was done on 60 nodes cluster with 4 cores and 128Gb of RA
 
 ## Configuration
 
-`secrets.yaml` file needs to be created and put in this folder of the follwosing format with AWS and HF hub credentials:
+`secrets.yaml` file needs to be created and put in this folder with the following format for HuggingFace Hub credentials:
 ```
-aws_access_key_id: 
-aws_secret_access_key: 
 hf_api_key: 
 ```
 
 All configuration is in the `cfg.py`. Configs needed to change would be:
-- `root_path` - a path for all processing steps and results to be wrtiten to
-- `repo_licenses_s3` - location of license per repository information
-- `commit_paris_files_s3` - location of commit pairs files for PRs data
+- `root_path` - a path for all processing steps and results to be written to
+- `local_data_path` - path to the local data directory where dataset files are stored
+- `repo_licenses_local` - local location of license per repository information
+- `commit_paris_files_local` - local location of commit pairs files for PRs data
 - `opt_outs_dataset_name` - location of opt out data
 
-NOTE: `repo_licenses_s3` and `commit_paris_files_s3` will be released later and we reccomend compilin your own sets for up to date information, those data sets are compiled in other parts of SC2 data pipeline. `opt_outs_dataset_name` will  not be release as it is confidential data, so it is needed to compile such data for your project. Please ask on BigCode comunty genral forums on Slack for more details.
+NOTE: Dataset files should be downloaded separately and placed in your local data directory. These data sets are compiled in other parts of the Stack V2 data pipeline. `opt_outs_dataset_name` will not be released as it is confidential data, so it is needed to compile such data for your project. Please ask on BigCode community general forums on Slack for more details.
 
 
 ## 0_get_gharchive_events.py

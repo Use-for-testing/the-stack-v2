@@ -1,7 +1,9 @@
 from datetime import date
 from pathlib import Path
 
-root_path = Path('/data/the_stack_v2_pr_and_other_datasets')
+root_path = Path('./output')  # Changed to match get.py output path
+# Path to local data that was previously stored in S3
+local_data_path = Path('./data')
 
 gharchives_path = root_path / "gharchives"
 sdate = date(2015, 1, 1)  # start date
@@ -14,8 +16,9 @@ prs_grouped_filtered_path  = root_path /  'prs_grouped_filtered'
 prs_renders_path  = root_path /  'prs_renders'
 
 
-repo_licenses_s3 = {
-    'bucket': 'bigcode-datasets-us-east-1',
+# Replaced S3 config with local data paths
+repo_licenses_local = {
+    'data_dir': local_data_path,
     'path': 'swh_2023_09_06/stats/repo_licenses/part-00000-474605ad-e5ce-4d86-bf45-acaac7241ba1-c000.snappy.parquet',
 }
 
@@ -24,8 +27,9 @@ opt_outs_dataset_name = 'bigcode-data/opt-out'
 repo_licenses_path = root_path / 'repo_licenses'
 repo_licenses_sqlite_file = root_path / 'repo_licenses' / 'repo_licenses.db'
 
-commit_paris_files_s3 = {
-    'bucket': 'bigcode-datasets-us-east-1',
+# Replaced S3 config with local data paths
+commit_paris_files_local = {
+    'data_dir': local_data_path,
     'path': 'swh_2023_09_06_prs/file_dataset',
     'ext': 'parquet'
 }

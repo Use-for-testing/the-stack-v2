@@ -155,25 +155,31 @@ def get_is_user_bot(event):
 
     return get_is_user_bot_from_username(un)
 
-def get_repo_names_licenses(
-    bucket='bigcode-datasets',
-    key='swh_2023_09_06/stats/repo_licenses/part-00000-474605ad-e5ce-4d86-bf45-acaac7241ba1-c000.snappy.parquet',
-    dst=None,
-    aws_access_key_id=None,
-    aws_secret_access_key=None
+def get_repo_names_licenses_local(
+    data_dir,
+    src_path,
+    dst_path
 ):
-    import boto3
-    dst = Path(dst) / Path(key).name
-    session = boto3.Session(
-        aws_access_key_id=aws_access_key_id,
-        aws_secret_access_key=aws_secret_access_key
-    )
-    s3 = session.resource('s3')
-    bucket = s3.Bucket(bucket)
-    bucket.download_file(
-        key,
-        dst
-    )
+    """
+    Copies a license file from a local source to a destination.
+    Replacement for the S3 version without AWS dependencies.
+    
+    Args:
+        data_dir: Source directory (replaces bucket)
+        src_path: Source file path relative to data_dir (replaces key)
+        dst_path: Destination directory
+    """
+    import shutil
+    src = Path(data_dir) / src_path
+    dst = Path(dst_path) / Path(src_path).name
+    
+    if not dst.parent.exists():
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        
+    if src.exists():
+        shutil.copy2(src, dst)
+    else:
+        print(f"Warning: Source file {src} not found")
 
 def repo_names_licenses_convert_to_sqlite(src, dst):
     ddf  = dd.read_parquet(src)

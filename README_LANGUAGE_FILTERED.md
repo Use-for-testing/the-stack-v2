@@ -24,7 +24,6 @@ This README explains how to use the modified scripts to generate a filtered vers
 - Python 3.6+
 - Spark (for distributed processing)
 - Go (for enry language detection)
-- AWS credentials (if using S3 paths)
 - Sufficient disk space for the dataset
 
 ## Quick Start
@@ -102,6 +101,5 @@ If you're running locally with limited resources, consider using the `--local` o
 
 ## Troubleshooting
 
-- **S3 Access Errors**: Ensure your AWS credentials are set up correctly
 - **Memory Issues**: Try reducing batch sizes or processing fewer blob prefixes at a time
 - **Missing Files**: If resuming from a previous step, ensure all required files exist
